@@ -17,12 +17,12 @@ import lombok.experimental.Accessors;
 @Setter
 @ToString(exclude = "tweets")
 @Accessors(chain = true)
-public class User {
+public class LazyUser {
 
   @Id private Long id;
   private String name;
   private String handle;
 
-  @OneToMany(fetch = FetchType.EAGER)
+  @OneToMany(fetch = FetchType.LAZY)
   private List<Tweet> tweets;
 }

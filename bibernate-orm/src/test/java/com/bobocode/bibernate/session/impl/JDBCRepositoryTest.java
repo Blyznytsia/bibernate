@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.bobocode.bibernate.context.PersistenceContext;
-import com.bobocode.bibernate.entity.User;
+import com.bobocode.bibernate.entity.EagerUser;
 import java.util.List;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
@@ -20,13 +20,13 @@ class JDBCRepositoryTest {
     var dataSource = mock(DataSource.class);
     var repositorySpy = spy(new JDBCRepository(dataSource, persistenceContext));
 
-    List<Object> users = List.of(new User().setId(100L), new User().setId(100L));
+    List<Object> users = List.of(new EagerUser().setId(100L), new EagerUser().setId(100L));
     doReturn(users).when(repositorySpy).findAllByField(any(), any(), any());
     doReturn(false).when(persistenceContext).contains(any());
 
     var id = 22L;
-    var entityType = User.class.getSimpleName();
-    assertThatThrownBy(() -> repositorySpy.findOneById(User.class, id))
+    var entityType = EagerUser.class.getSimpleName();
+    assertThatThrownBy(() -> repositorySpy.findOneById(EagerUser.class, id))
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Found more than 1 record for entity %s with id=%s", entityType, id);
   }

@@ -24,6 +24,7 @@ import java.util.List;
 import javax.sql.DataSource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.util.VisibleForTesting;
 
 @Slf4j
 public class JDBCRepository {
@@ -65,6 +66,7 @@ public class JDBCRepository {
     }
   }
 
+  @VisibleForTesting
   <T> List<T> findAllByField(Class<T> entityType, Field filterField, Object fieldVal) {
     try (var connection = dataSource.getConnection()) {
 

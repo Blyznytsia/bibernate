@@ -1,17 +1,34 @@
 CREATE TABLE IF NOT EXISTS users
 (
-    id     BIGINT PRIMARY KEY,
-    name   VARCHAR(255),
-    handle VARCHAR(255)
-);
+    id
+    BIGINT
+    PRIMARY
+    KEY,
+    name
+    VARCHAR
+(
+    255
+),
+    handle VARCHAR
+(
+    255
+)
+    );
 
 CREATE TABLE IF NOT EXISTS tweets
 (
-    id         BIGINT PRIMARY KEY,
-    tweet_text VARCHAR(255),
+    id
+    BIGINT
+    PRIMARY
+    KEY,
+    tweet_text
+    VARCHAR
+(
+    255
+),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id    BIGINT REFERENCES users
-);
+    user_id BIGINT REFERENCES users
+    );
 
 
 INSERT INTO users(id, name, handle)
@@ -26,10 +43,10 @@ VALUES (1, 'Congrats to all a treat to a game of baking', 1),
         'Good night Dublin! I will be with you for 14 hours, 31 C Good night Mumbai! I will be back in Paris in.',
         1),
        (3,
-        'Spring Break is coming to Alumni Athletics… Did you to remember and running...big shoutout to Dr. Susan.',
+        'Spring Break is coming to Alumni Athletics',
         2),
        (4,
-        'Yikes Yes Another orbital plane of digital to win a real problem here is about me… Mostly just that?',
+        'Yikes',
         2),
        (5,
         'Good article What video games have reached a phase. Heatwave in recent weeks & days. Accurate? Saxon?',
