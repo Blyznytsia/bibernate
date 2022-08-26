@@ -3,9 +3,9 @@ package com.bobocode.bibernate.session.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.bobocode.bibernate.entity.EagerUser;
-import com.bobocode.bibernate.entity.LazyUser;
-import com.bobocode.bibernate.entity.Tweet;
+import com.bobocode.bibernate.entity.eager.EagerTweet;
+import com.bobocode.bibernate.entity.eager.EagerUser;
+import com.bobocode.bibernate.entity.lazy.LazyUser;
 import com.bobocode.bibernate.session.BaseTest;
 import com.bobocode.bibernate.session.Session;
 import com.bobocode.bibernate.session.SessionFactory;
@@ -27,10 +27,15 @@ class SessionTest extends BaseTest {
 
   @Test
   void find_givenEntityIsMultipleTimes_shouldReturnCachedEntityFromTheContext() {
-    EagerUser user = session.find(EagerUser.class, 2L);
-    EagerUser sameUser = session.find(EagerUser.class, 2L);
+    var txManager = session.getTransactionManager();
 
-    assertThat(user).isSameAs(sameUser);
+    txManager.execInTransaction(
+        () -> {
+          EagerUser user = session.find(EagerUser.class, 2L);
+          EagerUser sameUser = session.find(EagerUser.class, 2L);
+
+          assertThat(user).isSameAs(sameUser);
+        });
   }
 
   /*
@@ -39,25 +44,33 @@ class SessionTest extends BaseTest {
   */
   @Test
   void find_givenEntityHasOneToManyRelationWithDefaultFetchType_shouldContainLazyCollection() {
-    LazyUser user = session.find(LazyUser.class, 2L);
+    var txManager = session.getTransactionManager();
+    txManager.execInTransaction(
+        () -> {
+          LazyUser user = session.find(LazyUser.class, 2L);
 
-    var collectionType = user.getTweets().getClass();
-    assertThat(Proxy.isProxyClass(collectionType)).isTrue();
+          var collectionType = user.getTweets().getClass();
+          user.getTweets().forEach(System.out::println);
+          assertThat(Proxy.isProxyClass(collectionType)).isTrue();
+        });
   }
 
   @Test
   void find_givenEntityHasOneToManyRelationWithEagerFetchType_shouldContainPopulatedCollection() {
-    EagerUser user = session.find(EagerUser.class, 2L);
+    var txManager = session.getTransactionManager();
+
+    EagerUser user =
+        txManager.execInTransactionReturningResult(() -> session.find(EagerUser.class, 2L));
 
     var tweets = user.getTweets();
     var collectionType = tweets.getClass();
 
-    var tweet1 = new Tweet();
+    var tweet1 = new EagerTweet();
     tweet1.setId(3L);
     tweet1.setTweetText("Spring Break is coming to Alumni Athletics");
     tweet1.setUser(user);
 
-    var tweet2 = new Tweet();
+    var tweet2 = new EagerTweet();
     tweet2.setId(4L);
     tweet2.setTweetText("Yikes");
     tweet2.setUser(user);
@@ -72,6 +85,10 @@ class SessionTest extends BaseTest {
   @Test
   void find_givenNoEntityFoundById_shouldThrowException() {
     var id = ThreadLocalRandom.current().nextInt(100, 200);
+    var txManager = session.getTransactionManager();
+
+    txManager.begin();
+
     var entityType = EagerUser.class.getSimpleName();
     assertThatThrownBy(() -> session.find(EagerUser.class, id))
         .isInstanceOf(IllegalStateException.class)

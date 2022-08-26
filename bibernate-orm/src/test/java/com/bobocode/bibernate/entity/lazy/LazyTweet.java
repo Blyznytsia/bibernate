@@ -1,4 +1,4 @@
-package com.bobocode.bibernate.entity;
+package com.bobocode.bibernate.entity.lazy;
 
 import com.bobocode.bibernate.annotation.Column;
 import com.bobocode.bibernate.annotation.Entity;
@@ -15,7 +15,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString(exclude = "user")
-public class Tweet {
+public class LazyTweet {
 
   @Id private Long id;
 
@@ -27,5 +27,5 @@ public class Tweet {
 
   @ManyToOne
   @JoinColumn(name = "user_id")
-  private EagerUser user;
+  private LazyUser user;
 }
