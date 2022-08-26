@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 
 import com.bobocode.bibernate.context.PersistenceContext;
-import com.bobocode.bibernate.entity.EagerUser;
+import com.bobocode.bibernate.entity.eager.EagerUser;
 import java.util.List;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;

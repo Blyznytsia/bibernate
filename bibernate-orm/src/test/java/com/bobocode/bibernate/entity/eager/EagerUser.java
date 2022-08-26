@@ -1,4 +1,4 @@
-package com.bobocode.bibernate.entity;
+package com.bobocode.bibernate.entity.eager;
 
 import com.bobocode.bibernate.annotation.Entity;
 import com.bobocode.bibernate.annotation.Id;
@@ -24,5 +24,5 @@ public class EagerUser {
   private String handle;
 
   @OneToMany(fetch = FetchType.EAGER)
-  private List<Tweet> tweets;
+  private List<EagerTweet> tweets;
 }

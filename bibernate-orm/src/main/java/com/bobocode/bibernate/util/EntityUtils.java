@@ -74,7 +74,7 @@ public final class EntityUtils {
         .filter(f -> f.isAnnotationPresent(JoinColumn.class))
         .filter(f -> f.getType().equals(referencedEntityType))
         .findFirst()
-        .orElseThrow();
+        .orElseThrow(() -> new NoSuchFieldException("No field annotated @JoinColumn is found"));
   }
 
   public static Stream<Field> findAllSimpleFields(Class<?> entityType) {

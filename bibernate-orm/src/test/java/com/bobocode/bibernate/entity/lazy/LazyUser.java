@@ -1,4 +1,4 @@
-package com.bobocode.bibernate.entity;
+package com.bobocode.bibernate.entity.lazy;
 
 import com.bobocode.bibernate.annotation.Entity;
 import com.bobocode.bibernate.annotation.Id;
@@ -24,5 +24,5 @@ public class LazyUser {
   private String handle;
 
   @OneToMany(fetch = FetchType.LAZY)
-  private List<Tweet> tweets;
+  private List<LazyTweet> tweets;
 }
