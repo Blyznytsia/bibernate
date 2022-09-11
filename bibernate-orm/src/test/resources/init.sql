@@ -1,34 +1,24 @@
 CREATE TABLE IF NOT EXISTS users
 (
-    id
-    BIGINT
-    PRIMARY
-    KEY,
-    name
-    VARCHAR
-(
-    255
-),
-    handle VARCHAR
-(
-    255
-)
-    );
+    id     BIGINT PRIMARY KEY,
+    name   VARCHAR(255),
+    handle VARCHAR(255)
+);
 
 CREATE TABLE IF NOT EXISTS tweets
 (
-    id
-    BIGINT
-    PRIMARY
-    KEY,
-    tweet_text
-    VARCHAR
-(
-    255
-),
+    id         BIGINT PRIMARY KEY,
+    tweet_text VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    user_id BIGINT REFERENCES users
-    );
+    user_id    BIGINT REFERENCES users
+);
+
+CREATE TABLE persons
+(
+    id         BIGINT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(255) NOT NULL,
+    last_name  VARCHAR(255) NOT NULL
+);
 
 
 INSERT INTO users(id, name, handle)

@@ -1,24 +1,19 @@
 package com.bobocode.bibernate.session.impl;
 
 import static com.bobocode.bibernate.enums.FetchType.LAZY;
-import static com.bobocode.bibernate.util.EntityUtils.extractCollectionType;
-import static com.bobocode.bibernate.util.EntityUtils.extractFieldName;
-import static com.bobocode.bibernate.util.EntityUtils.extractId;
-import static com.bobocode.bibernate.util.EntityUtils.extractIdField;
-import static com.bobocode.bibernate.util.EntityUtils.extractTableAlias;
-import static com.bobocode.bibernate.util.EntityUtils.findJoinColumn;
-import static com.bobocode.bibernate.util.EntityUtils.setManyToOneField;
-import static com.bobocode.bibernate.util.EntityUtils.setOneToManyField;
+import static com.bobocode.bibernate.util.EntityUtils.*;
 
+import com.bobocode.bibernate.annotation.Id;
 import com.bobocode.bibernate.annotation.ManyToOne;
 import com.bobocode.bibernate.annotation.OneToMany;
 import com.bobocode.bibernate.context.PersistenceContext;
+import com.bobocode.bibernate.exception.ActionException;
 import com.bobocode.bibernate.util.EntityKey;
 import com.bobocode.bibernate.util.SqlUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import javax.sql.DataSource;
@@ -50,8 +45,69 @@ public class JDBCRepository {
     var entities = findAllByField(entityType, idField, id);
 
     checkOnlyOneEntityFound(entityType, id, entities);
+    T t = entities.get(0);
+    saveForDirtyChecking(entityType, id, t);
+    return entityType.cast(t);
+  }
 
-    return entities.get(0);
+  public <T> T save(T entity) {
+    try(var connection = dataSource.getConnection()) {
+
+      connection.setAutoCommit(false);
+      String buildQuery = SqlUtils.createUpdateQuery(entity);
+
+      try(var statement = connection.prepareStatement(buildQuery, Statement.RETURN_GENERATED_KEYS)) {
+        connection.beginRequest();
+
+        List<Field> fields = extractSortedFieldsStream(entity.getClass()).toList();
+
+        for (int i = 0; i < fields.size(); i++) {
+          Field field = fields.get(i);
+          field.setAccessible(true);
+          statement.setObject(i+1, field.get(entity));
+        }
+
+        statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+
+        extractEntityIdFromResultSet(entity, rs);
+        connection.commit();
+
+        return entity;
+      } catch (SQLException e) {
+        connection.rollback();
+        throw e;
+      }
+
+    } catch (Exception e) {
+      throw new ActionException("Save entity exception", e);
+    }
+  }
+
+  public <T> Integer delete(T entity) {
+    Object id = extractId(entity);
+    return (Integer) id;
+  }
+
+  @SneakyThrows
+  private <T> void extractEntityIdFromResultSet(T entity, ResultSet rs) {
+    if (rs.next()) {
+
+      Field[] fields = entity.getClass().getDeclaredFields();
+      for (Field field : fields) {
+        if (field.isAnnotationPresent(Id.class)) {
+          String idName = field.getName();
+          Object object = rs.getObject(idName);
+          field.setAccessible(true);
+          field.set(entity, object);
+        }
+      }
+    }
+  }
+
+  private <T> void saveForDirtyChecking(Class<T> entityType, Object id, T t) {
+    EntityKey<T> entityKey = EntityKey.of(entityType, id);
+    context.saveDirtyEntity(entityKey, t);
   }
 
   private void checkOnlyOneEntityFound(Class<?> entityType, Object id, List<?> entities) {

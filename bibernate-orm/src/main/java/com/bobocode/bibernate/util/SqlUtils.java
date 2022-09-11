@@ -1,15 +1,11 @@
 package com.bobocode.bibernate.util;
 
-import static com.bobocode.bibernate.util.EntityUtils.extractFieldName;
-import static com.bobocode.bibernate.util.EntityUtils.extractIdField;
-import static com.bobocode.bibernate.util.EntityUtils.extractTableAlias;
-import static com.bobocode.bibernate.util.EntityUtils.extractTableName;
-import static com.bobocode.bibernate.util.EntityUtils.findAllSimpleFields;
-import static com.bobocode.bibernate.util.EntityUtils.findManyToOneField;
+import static com.bobocode.bibernate.util.EntityUtils.*;
 import static java.lang.String.join;
 import static java.util.stream.Collectors.joining;
 
 import java.lang.reflect.Field;
+
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -26,6 +22,8 @@ public final class SqlUtils {
         ON %s = %s
         WHERE %s = ?;
       """;
+  public static final String INSERT_QUERY = "insert into %s(%s) values (%s)";
+  public static final String DELETE_QUERY = "delete from %s where id = ?";
 
   public static String createSelectWithLeftJoin(Class<?> leftTableType, Class<?> rightTableType) {
     var leftTableName = extractTableName(leftTableType);
@@ -66,5 +64,46 @@ public final class SqlUtils {
         .map(name -> tableAlias + "." + name)
         .map(name -> name + " AS " + name.replace(".", ""))
         .collect(joining(","));
+  }
+
+  /**
+   * example:
+   * <pre>
+   *      insert into table_names(firstName, lastName) values (?, ?);
+   * </pre>
+   *
+   * @param entity - entity object
+   * @return built update query string for {@link java.sql.PreparedStatement}
+   * @param <T> type of entity
+   */
+  public static <T> String createUpdateQuery(T entity) {
+    Class<?> entityType = entity.getClass();
+
+    String tableName = extractTableName(entityType);
+    Field[] fields = extractSortedFieldsStream(entityType)
+            .toArray(Field[]::new);
+
+    var fieldNames = new StringBuilder();
+    var questionMarksPlaceHolder = new StringBuilder();
+
+    for (int i = 0; i < fields.length; i++) {
+      var field = fields[i];
+      var fieldName = extractFieldName(field);
+      fieldNames.append(fieldName);
+      questionMarksPlaceHolder.append("?");
+
+      if (i + 1 != fields.length) {
+        fieldNames.append(",");
+        questionMarksPlaceHolder.append(",");
+      }
+
+    }
+
+    return INSERT_QUERY.formatted(tableName, fieldNames, questionMarksPlaceHolder);
+  }
+
+  public static <T> String createDeleteQuery(T entity) {
+    String tableName = extractTableName(entity.getClass());
+    return DELETE_QUERY.formatted(tableName);
   }
 }

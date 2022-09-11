@@ -1,5 +1,7 @@
 package com.bobocode.bibernate.session.impl;
 
+import com.bobocode.bibernate.action.DeleteAction;
+import com.bobocode.bibernate.action.InsertAction;
 import com.bobocode.bibernate.context.PersistenceContext;
 import com.bobocode.bibernate.session.Session;
 import javax.sql.DataSource;
@@ -23,13 +25,21 @@ public class SimpleSession implements Session {
   }
 
   @Override
-  public void remove(Object entity) {}
+  public void remove(Object entity) {
+    DeleteAction deleteAction = new DeleteAction(entity, jdbcRepository);
+    context.addAction(deleteAction);
+  }
 
   @Override
-  public void persist(Object entity) {}
+  public void persist(Object entity) {
+    InsertAction insertAction = new InsertAction(entity, jdbcRepository);
+    context.addAction(insertAction);
+  }
 
   @Override
-  public void flush() {}
+  public void flush() {
+    context.performAction();
+  }
 
   @Override
   public void close() {}

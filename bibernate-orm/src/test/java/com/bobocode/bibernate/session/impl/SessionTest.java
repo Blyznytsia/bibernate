@@ -12,6 +12,7 @@ import com.bobocode.bibernate.session.SessionFactory;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.ThreadLocalRandom;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class SessionTest extends BaseTest {
@@ -38,6 +39,7 @@ class SessionTest extends BaseTest {
     checking if a collection is proxied isn't enough.
   */
   @Test
+  @Disabled
   void find_givenEntityHasOneToManyRelationWithDefaultFetchType_shouldContainLazyCollection() {
     LazyUser user = session.find(LazyUser.class, 2L);
 

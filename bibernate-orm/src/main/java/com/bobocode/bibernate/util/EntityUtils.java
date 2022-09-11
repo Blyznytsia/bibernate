@@ -13,6 +13,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -119,5 +120,24 @@ public final class EntityUtils {
     var manyToOneField = findManyToOneField(type);
     manyToOneField.setAccessible(true);
     manyToOneField.set(object, value);
+  }
+
+  public static <T> Object[] extractSortedFieldValues(Class<T> type, T t) {
+    return extractSortedFieldsStream(type)
+            .map(field -> {
+              try {
+                field.setAccessible(true);
+                return field.get(t);
+              } catch (IllegalAccessException e) {
+                throw new RuntimeException("Can't extract value form field", e);
+              }
+            })
+            .toArray();
+  }
+
+  public static <T> Stream<Field> extractSortedFieldsStream(Class<T> type) {
+    return findAllSimpleFields(type)
+            .filter(field -> !field.isAnnotationPresent(Id.class))
+            .sorted(Comparator.comparing(Field::getName));
   }
 }

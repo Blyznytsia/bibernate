@@ -1,5 +1,6 @@
 package com.bobocode.bibernate.session.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -10,6 +11,10 @@ import com.bobocode.bibernate.context.PersistenceContext;
 import com.bobocode.bibernate.entity.EagerUser;
 import java.util.List;
 import javax.sql.DataSource;
+
+import com.bobocode.bibernate.entity.Person;
+import com.bobocode.bibernate.session.BaseTest;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class JDBCRepositoryTest {
@@ -30,4 +35,38 @@ class JDBCRepositoryTest {
         .isInstanceOf(IllegalStateException.class)
         .hasMessage("Found more than 1 record for entity %s with id=%s", entityType, id);
   }
+
+  @Test
+  void save_givenNewEntity_shouldUpdateIdField() {
+    PersistenceContext persistenceContext = new PersistenceContext();
+    DataSource dataSource = BaseTest.inmemoryH2Datasource();
+    JDBCRepository jdbcRepository = new JDBCRepository(dataSource, persistenceContext);
+
+    Person person = new Person();
+    person.setFirstName("Joe");
+    person.setLastName("Dou");
+
+    assertThat(person.getId()).isNull();
+    jdbcRepository.save(person);
+
+    assertThat(person.getId()).isNotNull();
+  }
+
+  @Test
+  void delete_givenNewEntity_shouldDeleteFromDB() {
+    PersistenceContext persistenceContext = new PersistenceContext();
+    DataSource dataSource = BaseTest.inmemoryH2Datasource();
+    JDBCRepository jdbcRepository = new JDBCRepository(dataSource, persistenceContext);
+
+    Person person = new Person();
+    person.setFirstName("Joe");
+    person.setLastName("Dou");
+    jdbcRepository.save(person);
+
+    assertThat(person.getId()).isNotNull();
+
+    jdbcRepository.delete(person);
+    Person deletedPerson = jdbcRepository.findOneById(Person.class, person.getId());
+  }
+
 }
